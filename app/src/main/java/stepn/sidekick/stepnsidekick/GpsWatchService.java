@@ -16,6 +16,8 @@ import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.os.CountDownTimer;
 import android.os.IBinder;
+import android.speech.tts.TextToSpeech;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -27,6 +29,9 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
+import org.w3c.dom.Text;
+
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -38,6 +43,9 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class GpsWatchService extends Service {
+
+    private TextToSpeech english;
+    private TextToSpeech korean;
 
     // Google's API for location services
     FusedLocationProviderClient fusedLocationProviderClient;
@@ -227,12 +235,51 @@ public class GpsWatchService extends Service {
                         @Override
                         public void run() {
                             if (voiceAlertsTime) {
-                                voiceTime(millisUntilFinished);
+
+                                english = new TextToSpeech(GpsWatchService.this, new TextToSpeech.OnInitListener() {
+                                    @Override
+                                    public void onInit(int status) {
+                                        if (status == TextToSpeech.SUCCESS) {
+                                            int result = english.setLanguage(Locale.ENGLISH);
+
+                                            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                                                Log.e("TTS", "Lang not supported");
+                                            }
+                                        } else {
+                                            Log.e("TTS", "Init failed");
+                                        }
+                                    }
+                                });
+
+                                korean = new TextToSpeech(GpsWatchService.this, new TextToSpeech.OnInitListener() {
+                                    @Override
+                                    public void onInit(int i) {
+                                        if (i == TextToSpeech.SUCCESS) {
+                                            int result = korean.setLanguage(Locale.KOREAN);
+
+                                            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                                                Log.e("TTS", "Lang not supported");
+                                            }
+                                        } else {
+                                            Log.e("TTS", "Init failed");
+                                        }
+                                    }
+                                });
+
+                                try {
+                                    Thread.sleep(100);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                }
+
+                                voiceTimeTextToSpeech(millisUntilFinished);
+
                             } else if (voiceAlertsSpeed) {
                                 voiceSpeed();
                             }
                         }
                     }).start();
+
                 }
 
                 // voice alerts for one minute and thirty seconds
@@ -264,6 +311,17 @@ public class GpsWatchService extends Service {
                 stopSelf();
             }
         };
+    }
+
+    // test
+    private void voiceTimeTextToSpeech(long millisUntilFinished)  {
+
+
+        // QUEUE_ADD adds the text to the queue (waits for any current speech to finish,
+        // QUEUE_FLUSH erases any current speech and plays immediately)
+        english.speak("Time Remaining. 35 minutes. Current Speed. 5.8 kilometers per hour.", TextToSpeech.QUEUE_ADD, null, null);
+
+        korean.speak("남은 시간은. 35분입니다. 현제 속도는. 5.8 시속입니다.", TextToSpeech.QUEUE_ADD, null, null);
     }
 
     // initializes the ten-second countdown timer (before starting the activity)
@@ -862,6 +920,11 @@ public class GpsWatchService extends Service {
         if (voiceSoundPool != null) {
             voiceSoundPool.release();
             voiceSoundPool = null;
+        }
+
+        if (english != null) {
+            english.stop();
+            english.shutdown();
         }
 
         SpeedTracker.serviceStatus = -1;
