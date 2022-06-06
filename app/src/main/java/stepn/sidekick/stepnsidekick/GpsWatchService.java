@@ -243,31 +243,31 @@ public class GpsWatchService extends Service {
                                             int result = english.setLanguage(Locale.ENGLISH);
 
                                             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                                                Log.e("TTS", "Lang not supported");
+                                                Log.e("TTS", "Eng not supported");
                                             }
                                         } else {
                                             Log.e("TTS", "Init failed");
                                         }
                                     }
-                                });
+                                }, "com.google.android.tts");
 
                                 korean = new TextToSpeech(GpsWatchService.this, new TextToSpeech.OnInitListener() {
                                     @Override
                                     public void onInit(int i) {
                                         if (i == TextToSpeech.SUCCESS) {
-                                            int result = korean.setLanguage(Locale.KOREAN);
+                                            int result = korean.setLanguage(Locale.KOREA);
 
                                             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                                                Log.e("TTS", "Lang not supported");
+                                                Log.e("TTS", "Kor not supported");
                                             }
                                         } else {
                                             Log.e("TTS", "Init failed");
                                         }
                                     }
-                                });
+                                }, "com.google.android.tts");
 
                                 try {
-                                    Thread.sleep(100);
+                                    Thread.sleep(1000);
                                 } catch (InterruptedException e) {
                                     Thread.currentThread().interrupt();
                                 }
@@ -319,9 +319,8 @@ public class GpsWatchService extends Service {
 
         // QUEUE_ADD adds the text to the queue (waits for any current speech to finish,
         // QUEUE_FLUSH erases any current speech and plays immediately)
-        english.speak("Time Remaining. 35 minutes. Current Speed. 5.8 kilometers per hour.", TextToSpeech.QUEUE_ADD, null, null);
-
-        korean.speak("남은 시간은. 35분입니다. 현제 속도는. 5.8 시속입니다.", TextToSpeech.QUEUE_ADD, null, null);
+        english.speak("Time remaining: 35 minutes.", TextToSpeech.QUEUE_ADD, null, null);
+        korean.speak("남은 시간은. 35분입니다.", TextToSpeech.QUEUE_ADD, null, null);
     }
 
     // initializes the ten-second countdown timer (before starting the activity)
